@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>透过“组织”看求职 · 课堂实时交互实验平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #020617;
+      color: #f8fafc;
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen pb-14">
+
+  <!-- 顶部导航栏 -->
+  <header class="border-b border-slate-800 bg-slate-900/95 backdrop-blur sticky top-0 z-40 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-amber-400 text-xs font-extrabold tracking-wider uppercase">《管理学》组织模块 · 课堂微实验</span>
+          <span id="connStatus" class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">初始化中...</span>
+        </div>
+        <h1 class="text-base sm:text-xl font-black text-white">透过“组织”看求职：企业到底在招什么样的人？</h1>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button id="roleToggleBtn" onclick="toggleRoleMode()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 cursor-pointer">
+          🖥️ 切换教师大屏
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 👨‍🎓 学生手机端视角 (STUDENT VIEW)                                     -->
+  <!-- ===================================================================== -->
+  <main id="studentView" class="max-w-2xl mx-auto px-4 pt-5 space-y-5">
+
+    <!-- 3大实验切换Tab -->
+    <div class="grid grid-cols-3 gap-1.5 bg-slate-900 p-1.5 rounded-2xl border border-slate-800 text-xs sm:text-sm font-bold">
+      <button onclick="switchStuExp(1)" id="sTab1" class="py-2.5 rounded-xl bg-amber-500 text-slate-950 shadow">① 求职基因</button>
+      <button onclick="switchStuExp(2)" id="sTab2" class="py-2.5 rounded-xl text-slate-400 hover:text-white">② 化身 HR</button>
+      <button onclick="switchStuExp(3)" id="sTab3" class="py-2.5 rounded-xl text-slate-400 hover:text-white">③ 面试反问</button>
+    </div>
+
+    <!-- 实验一：求职基因扫描 -->
+    <section id="stuExp1" class="space-y-4 animate-fade">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2">
+        <div class="text-amber-400 font-extrabold text-sm">🧭 课堂实验一：求职基因扫描（匿名提交）</div>
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          结合刚才讲的<strong>企业骨架（直线/参谋）</strong>与<strong>企业灵魂（桑南菲尔德四种文化）</strong>，选出你毕业第一份工作最真实的倾向，提交后大屏实时汇总！
+        </p>
+      </div>
+
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-white">1. 你毕业第一份工作，最想去哪种组织文化？</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm">
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-amber-500/60">
+              <input type="radio" name="exp1_culture" value="学院型" class="mt-0.5 accent-amber-500">
+              <div><strong class="text-amber-300">学院型</strong><div class="text-slate-400 text-xs">如宝洁/IBM，爱招新人、培训完善</div></div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-amber-500/60">
+              <input type="radio" name="exp1_culture" value="俱乐部型" class="mt-0.5 accent-amber-500">
+              <div><strong class="text-blue-300">俱乐部型</strong><div class="text-slate-400 text-xs">如政府/国企，重资历、求稳定</div></div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-amber-500/60">
+              <input type="radio" name="exp1_culture" value="棒球队型" class="mt-0.5 accent-amber-500">
+              <div><strong class="text-emerald-300">棒球队型</strong><div class="text-slate-400 text-xs">如投行/大厂研发，高薪高自由、淘汰严酷</div></div>
+            </label>
+            <label class="flex items-start gap-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-amber-500/60">
+              <input type="radio" name="exp1_culture" value="堡垒型" class="mt-0.5 accent-amber-500">
+              <div><strong class="text-rose-300">堡垒型</strong><div class="text-slate-400 text-xs">如转型期零售/周期行业，流动大、抄底搏机会</div></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-white">2. 你更倾向于哪种岗位类型？</label>
+          <div class="grid grid-cols-2 gap-2.5 text-xs sm:text-sm">
+            <label class="flex items-start gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-amber-500/60">
+              <input type="radio" name="exp1_role" value="直线业务岗" class="mt-0.5 accent-amber-500">
+              <div><strong class="text-white">直线业务岗</strong><div class="text-slate-400 text-xs">背业绩指标、晋升快压力大</div></div>
+            </label>
+            <label class="flex items-start gap-2 p-3 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer hover:border-amber-500/60">
+              <input type="radio" name="exp1_role" value="参谋职能岗" class="mt-0.5 accent-amber-500">
+              <div><strong class="text-white">参谋职能岗</strong><div class="text-slate-400 text-xs">靠专业建议吃饭、不直接背业绩</div></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-sm font-bold text-white">3. 一句话说说你的真实理由（匿名上墙）：</label>
+          <textarea id="exp1_reason" rows="2" maxlength="100" placeholder="例如：想先去学院型打基础，最怕进小公司没人带..." class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:border-amber-400 focus:outline-none"></textarea>
+        </div>
+
+        <button id="btnSubmitExp1" onclick="submitExp1()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm shadow-lg cursor-pointer">
+          🚀 匿名提交到教室大屏
+        </button>
+        <div id="exp1Msg" class="hidden p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 text-xs text-center font-bold"></div>
+      </div>
+    </section>
+
+    <!-- 实验二：化身HR发Offer -->
+    <section id="stuExp2" class="hidden space-y-4 animate-fade">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2.5">
+        <div class="text-amber-400 font-extrabold text-sm">⚖️ 课堂实验二：化身 HR 发 Offer（3选1淘汰赛）</div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-indigo-500/40 text-xs sm:text-sm space-y-1">
+          <div class="font-bold text-indigo-300">📌 招聘岗位：某互联网大厂 · 商业数据分析师（校招 · 唯一名额）</div>
+          <div class="text-slate-300"><strong>核心JD要求：</strong>熟练使用 SQL/Python 处理业务数据；需高频对接运营与产品部门推动落地；团队节奏快、大促期间需高强度加班；推崇“结果导向、拥抱变化”。</div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-2.5 text-xs sm:text-sm pt-1">
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="font-extrabold text-sky-400">候选人 A（林同学）· 顶尖学霸型</div>
+            <p class="text-slate-300 mt-1">985 硕士、专业前 5%、国奖与数模一等奖；但<strong>零实习经历</strong>，没接触过真实业务脏数据；面试时显得极其内向慢热、不善跨部门沟通。</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="font-extrabold text-emerald-400">候选人 B（陈同学）· 实战对口型</div>
+            <p class="text-slate-300 mt-1">普通双非本科、绩点中等；但有<strong>两段大厂精准对口实习</strong>（独立搭过业务看板、上手就能干活）；性格外向抗压、沟通表达极佳。</p>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+            <div class="font-extrabold text-rose-400">候选人 C（周同学）· 桀骜大牛型</div>
+            <p class="text-slate-300 mt-1">技术全能大神，SQL/算法能力碾压全场，笔试满分；但终面时明确表态：<strong>“我到点就下班绝不加班，不认同公司狼性文化，只按自己节奏做事。”</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-white">1. 唯一的 Offer，你最终发给谁？</label>
+          <div class="grid grid-cols-3 gap-2 text-xs sm:text-sm font-bold">
+            <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center cursor-pointer hover:border-sky-400">
+              <input type="radio" name="exp2_offer" value="A" class="mr-1 accent-sky-400"> 录用 A
+            </label>
+            <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center cursor-pointer hover:border-emerald-400">
+              <input type="radio" name="exp2_offer" value="B" class="mr-1 accent-emerald-400"> 录用 B
+            </label>
+            <label class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center cursor-pointer hover:border-rose-400">
+              <input type="radio" name="exp2_offer" value="C" class="mr-1 accent-rose-400"> 录用 C
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-white">2. 你刚才筛人时，底层用的是哪种录用方式？</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <input type="radio" name="exp2_logic" value="多重淘汰式" class="accent-amber-500">
+              <span><strong>多重淘汰式</strong>（有硬伤直接毙）</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <input type="radio" name="exp2_logic" value="补偿式" class="accent-amber-500">
+              <span><strong>补偿式</strong>（看长板算总分）</span>
+            </label>
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-950 border border-slate-800 cursor-pointer">
+              <input type="radio" name="exp2_logic" value="结合式" class="accent-amber-500">
+              <span><strong>结合式</strong>（过底线再算总分）</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-bold text-white">3. 请挑一位你淘汰的人，写一句最真实的“HR 内心 OS 淘汰理由”：</label>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-slate-400">我要淘汰：</span>
+            <label class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 cursor-pointer"><input type="radio" name="exp2_reject" value="A" class="mr-1 accent-sky-400">候选人 A</label>
+            <label class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 cursor-pointer"><input type="radio" name="exp2_reject" value="B" class="mr-1 accent-emerald-400">候选人 B</label>
+            <label class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-700 cursor-pointer"><input type="radio" name="exp2_reject" value="C" class="mr-1 accent-rose-400">候选人 C</label>
+          </div>
+          <textarea id="exp2_reason" rows="2" maxlength="100" placeholder="例如：C虽然能力最强，但价值观不合招进来根本管不住，还会带坏团队..." class="w-full p-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:border-amber-400 focus:outline-none"></textarea>
+        </div>
+
+        <button id="btnSubmitExp2" onclick="submitExp2()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm shadow-lg cursor-pointer">
+          ✅ 提交录用决策与淘汰 OS
+        </button>
+        <div id="exp2Msg" class="hidden p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 text-xs text-center font-bold"></div>
+      </div>
+    </section>
+
+    <!-- 实验三：面试反问大赏 -->
+    <section id="stuExp3" class="hidden space-y-4 animate-fade">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2">
+        <div class="text-amber-400 font-extrabold text-sm">🕵️ 课堂实验三：面试反问大赏——识破企业真文化</div>
+        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <strong>终面情境：</strong>面试最后 3 分钟，HR 笑眯眯地问你：<em>“你还有什么问题想问我们吗？”</em><br>
+          结合刚才讲的<strong>“了解组织文化的 5 个途径”</strong>，请写下你最想问 HR 的 <strong>1 个问题</strong>，用来试探这家公司是不是在“画大饼”！
+        </p>
+      </div>
+
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4">
+        <textarea id="exp3_question" rows="3" maxlength="120" placeholder="写下你准备反问 HR 的 1 个问题（匿名上墙）..." class="w-full p-3.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:border-amber-400 focus:outline-none"></textarea>
+
+        <button id="btnSubmitExp3" onclick="submitExp3()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm shadow-lg cursor-pointer">
+          💬 匿名发送到大屏问题墙
+        </button>
+        <div id="exp3Msg" class="hidden p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/60 text-emerald-300 text-xs text-center font-bold"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- 👩‍🏫 教师投影大屏视角 (TEACHER DASHBOARD)                              -->
+  <!-- ===================================================================== -->
+  <main id="teacherView" class="hidden max-w-7xl mx-auto px-4 pt-5 space-y-5">
+
+    <!-- 教师控制栏 -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap gap-1.5 text-xs sm:text-sm font-bold">
+        <button onclick="switchTeacherExp(1)" id="tTab1" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shadow cursor-pointer">① 求职基因大屏</button>
+        <button onclick="switchTeacherExp(2)" id="tTab2" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">② HR发Offer大屏</button>
+        <button onclick="switchTeacherExp(3)" id="tTab3" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">③ 面试反问墙</button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+        <span class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-emerald-400">
+          本实验已收：<strong id="tCountBadge" class="text-base">0</strong> 份
+        </span>
+        <button onclick="openQrModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer">📱 弹出扫码二维码</button>
+        <button onclick="fetchAllData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer">🔄 手动刷新</button>
+        <button onclick="clearCurrentExpData()" class="px-3 py-1.5 rounded-lg bg-rose-950 hover:bg-rose-900 border border-rose-700 text-rose-300 cursor-pointer">🗑️ 清空本实验</button>
+      </div>
+    </div>
+
+    <!-- 教师大屏 1：求职基因扫描 -->
+    <div id="tDash1" class="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade">
+      <div class="lg:col-span-7 space-y-5">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h2 class="text-base font-extrabold text-amber-400 mb-3">📊 全班最想去的组织文化分布（桑南菲尔德模型）</h2>
+          <div class="h-64"><canvas id="chartExp1Culture"></canvas></div>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h2 class="text-base font-extrabold text-indigo-400 mb-3">⚖️ 直线业务岗 vs 参谋职能岗 倾向对比</h2>
+          <div class="grid grid-cols-2 gap-4 items-center">
+            <div class="h-44"><canvas id="chartExp1Role"></canvas></div>
+            <div id="exp1RoleStats" class="space-y-2 text-sm text-slate-300"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col max-h-[600px]">
+        <h2 class="text-base font-extrabold text-emerald-400 mb-3">💬 匿名求职宣言墙（实时滚动）</h2>
+        <div id="exp1Wall" class="flex-1 overflow-y-auto custom-scroll space-y-2.5 pr-1"></div>
+      </div>
+    </div>
+
+    <!-- 教师大屏 2：化身 HR 发 Offer -->
+    <div id="tDash2" class="hidden space-y-5 animate-fade">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h2 class="text-base font-extrabold text-amber-400 mb-3">🏆 唯一 Offer 归属投票（A学霸 vs B实战 vs C大牛）</h2>
+          <div class="h-56"><canvas id="chartExp2Offer"></canvas></div>
+        </div>
+        <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <h2 class="text-base font-extrabold text-indigo-400 mb-3">🧠 全班采用的录用决策方式（教材 P33）</h2>
+          <div class="h-56"><canvas id="chartExp2Logic"></canvas></div>
+        </div>
+      </div>
+
+      <!-- 按被淘汰人分组的三列扎心理由墙 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-900 border border-sky-500/40 rounded-2xl p-4 flex flex-col max-h-[380px]">
+          <div class="font-extrabold text-sky-400 text-sm mb-2.5 border-b border-slate-800 pb-2">❌ 淘汰【A · 985零实习学霸】的扎心 OS</div>
+          <div id="exp2WallA" class="flex-1 overflow-y-auto custom-scroll space-y-2 text-xs sm:text-sm"></div>
+        </div>
+        <div class="bg-slate-900 border border-emerald-500/40 rounded-2xl p-4 flex flex-col max-h-[380px]">
+          <div class="font-extrabold text-emerald-400 text-sm mb-2.5 border-b border-slate-800 pb-2">❌ 淘汰【B · 双非实战派】的扎心 OS</div>
+          <div id="exp2WallB" class="flex-1 overflow-y-auto custom-scroll space-y-2 text-xs sm:text-sm"></div>
+        </div>
+        <div class="bg-slate-900 border border-rose-500/40 rounded-2xl p-4 flex flex-col max-h-[380px]">
+          <div class="font-extrabold text-rose-400 text-sm mb-2.5 border-b border-slate-800 pb-2">❌ 淘汰【C · 拒加班技术大牛】的扎心 OS</div>
+          <div id="exp2WallC" class="flex-1 overflow-y-auto custom-scroll space-y-2 text-xs sm:text-sm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 教师大屏 3：面试反问大赏 -->
+    <div id="tDash3" class="hidden space-y-5 animate-fade">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <h2 class="text-base font-extrabold text-amber-400 mb-3">🔥 全班反问高频词云（点击词条可高亮相关问题）</h2>
+        <div id="exp3WordCloud" class="flex flex-wrap gap-2.5 items-center min-h-[70px]"></div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-extrabold text-emerald-400">💬 终面反问 HR 完整匿名问题墙</h2>
+          <button onclick="activeKeyword=''; renderTeacherDash3();" class="text-xs text-slate-400 hover:text-white underline cursor-pointer">显示全部</button>
+        </div>
+        <div id="exp3Wall" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto custom-scroll pr-1"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 二维码弹窗 -->
+  <div id="qrModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeQrModal()">
+    <div class="bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+      <div class="text-amber-400 font-black text-lg">📱 手机扫码参与课堂实验</div>
+      <div class="bg-white p-3 rounded-2xl inline-block">
+        <img id="qrImg" src="" alt="课堂实验二维码" class="w-56 h-56 mx-auto" />
+      </div>
+      <div id="qrUrlText" class="text-xs text-slate-400 break-all bg-slate-950 p-2 rounded-lg"></div>
+      <button onclick="closeQrModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm cursor-pointer">关闭窗口</button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 🔧 已配置好您的 Supabase 项目 URL 和 anon public Key
+    // =========================================================================
+    const SUPABASE_URL = 'https://ojluadgbtthkrntctyon.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qbHVhZGdidHRoa3JudGN0eW9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUyNDEzMzQsImV4cCI6MjExMDgxNzMzNH0.zo_b6oBF9IFSBvvlSi-tVs65ivXXBN_-0imc8_0NN8Y';
+    const TEACHER_PASSCODE = '8888'; // 教师端切换口令
+
+    // 全局状态
+    let sbClient = null;
+    let isDemoMode = false;
+    let isTeacher = false;
+    let currentTeacherExp = 1;
+    let allSubmissions = [];
+    let activeKeyword = '';
+    let charts = {};
+
+    // 初始化 Supabase
+    function initSupabase() {
+      const statusEl = document.getElementById('connStatus');
+      try {
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        statusEl.textContent = '🟢 Supabase 云端已连接';
+        statusEl.className = 'text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+
+        // 开启实时订阅
+        sbClient
+          .channel('org_lab_realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'org_lab_submissions' }, () => {
+            if (isTeacher) fetchAllData();
+          })
+          .subscribe();
+
+        // 5秒兜底轮询（防校园网屏蔽WebSocket）
+        setInterval(() => {
+          if (isTeacher) fetchAllData();
+        }, 5000);
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = '🔴 连接失败，请检查网络';
+      }
+    }
+
+    // 写入数据
+    async function saveSubmission(expType, payload) {
+      const { error } = await sbClient.from('org_lab_submissions').insert([{ exp_type: expType, payload }]);
+      if (error) {
+        alert('提交失败，请检查是否已在 Supabase SQL Editor 中建表：' + error.message);
+        return false;
+      }
+      return true;
+    }
+
+    // 拉取数据
+    async function fetchAllData() {
+      const { data, error } = await sbClient
+        .from('org_lab_submissions')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (!error && data) {
+        allSubmissions = data;
+        renderCurrentTeacherDash();
+      }
+    }
+
+    // 清空当前实验数据
+    async function clearCurrentExpData() {
+      const expKey = 'exp' + currentTeacherExp;
+      if (!confirm(`确定要清空【实验 ${currentTeacherExp}】的所有学生提交记录吗？（换下一个班上课时使用）`)) return;
+      const { error } = await sbClient.from('org_lab_submissions').delete().eq('exp_type', expKey);
+      if (error) alert('清空失败：' + error.message);
+      else fetchAllData();
+    }
+
+    // ================= 学生端交互 =================
+    function switchStuExp(n) {
+      [1, 2, 3].forEach(i => {
+        document.getElementById('stuExp' + i).classList.toggle('hidden', i !== n);
+        document.getElementById('sTab' + i).className = (i === n)
+          ? 'py-2.5 rounded-xl bg-amber-500 text-slate-950 shadow'
+          : 'py-2.5 rounded-xl text-slate-400 hover:text-white';
+      });
+    }
+
+    async function submitExp1() {
+      const culture = document.querySelector('input[name="exp1_culture"]:checked')?.value;
+      const role = document.querySelector('input[name="exp1_role"]:checked')?.value;
+      const reason = document.getElementById('exp1_reason').value.trim();
+      if (!culture || !role || !reason) { alert('请选完文化、岗位，并写一句简短理由！'); return; }
+      const btn = document.getElementById('btnSubmitExp1');
+      btn.disabled = true; btn.textContent = '提交中...';
+      const ok = await saveSubmission('exp1', { culture, role, reason });
+      btn.disabled = false; btn.textContent = '🚀 再次提交 / 修改';
+      if (ok) {
+        const m = document.getElementById('exp1Msg');
+        m.classList.remove('hidden');
+        m.textContent = `✅ 已匿名上传到教室大屏！（你的选择：${culture} + ${role}）请抬头看大屏幕汇总结果！`;
+      }
+    }
+
+    async function submitExp2() {
+      const offer = document.querySelector('input[name="exp2_offer"]:checked')?.value;
+      const logic = document.querySelector('input[name="exp2_logic"]:checked')?.value;
+      const reject = document.querySelector('input[name="exp2_reject"]:checked')?.value;
+      const reason = document.getElementById('exp2_reason').value.trim();
+      if (!offer || !logic || !reject || !reason) { alert('请选完录用人选、录用方式、淘汰对象并填写淘汰理由！'); return; }
+      const btn = document.getElementById('btnSubmitExp2');
+      btn.disabled = true; btn.textContent = '提交中...';
+      const ok = await saveSubmission('exp2', { offer, logic, reject, reason });
+      btn.disabled = false; btn.textContent = '✅ 重新提交决策';
+      if (ok) {
+        const m = document.getElementById('exp2Msg');
+        m.classList.remove('hidden');
+        m.textContent = `✅ 你的 HR 决策（录用 ${offer}，淘汰 ${reject}）已实时同步至教师大屏！`;
+      }
+    }
+
+    async function submitExp3() {
+      const question = document.getElementById('exp3_question').value.trim();
+      if (!question || question.length < 4) { alert('请至少输入一句完整的反问问题！'); return; }
+      const btn = document.getElementById('btnSubmitExp3');
+      btn.disabled = true; btn.textContent = '发送中...';
+      const ok = await saveSubmission('exp3', { question });
+      btn.disabled = false; btn.textContent = '💬 再发一条问题';
+      if (ok) {
+        document.getElementById('exp3_question').value = '';
+        const m = document.getElementById('exp3Msg');
+        m.classList.remove('hidden');
+        m.textContent = '✅ 你的反问已匿名上墙！请抬头看大屏词云与问题墙！';
+      }
+    }
+
+    // ================= 教师大屏交互与渲染 =================
+    function toggleRoleMode(forceTeacher = false) {
+      if (!isTeacher && !forceTeacher) {
+        const pwd = prompt('请输入教师端大屏口令（默认 8888）：');
+        if (pwd !== TEACHER_PASSCODE) { if (pwd !== null) alert('口令错误'); return; }
+      }
+      isTeacher = forceTeacher ? true : !isTeacher;
+      document.getElementById('studentView').classList.toggle('hidden', isTeacher);
+      document.getElementById('teacherView').classList.toggle('hidden', !isTeacher);
+      document.getElementById('roleToggleBtn').textContent = isTeacher ? '📱 返回学生端' : '🖥️ 切换教师大屏';
+      if (isTeacher) fetchAllData();
+    }
+
+    function switchTeacherExp(n) {
+      currentTeacherExp = n;
+      [1, 2, 3].forEach(i => {
+        document.getElementById('tDash' + i).classList.toggle('hidden', i !== n);
+        document.getElementById('tTab' + i).className = (i === n)
+          ? 'px-4 py-2 rounded-xl bg-amber-500 text-slate-950 shadow cursor-pointer'
+          : 'px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer';
+      });
+      renderCurrentTeacherDash();
+    }
+
+    function renderCurrentTeacherDash() {
+      if (currentTeacherExp === 1) renderTeacherDash1();
+      else if (currentTeacherExp === 2) renderTeacherDash2();
+      else renderTeacherDash3();
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
+
+    function renderChart(canvasId, type, labels, data, colors) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      if (charts[canvasId]) charts[canvasId].destroy();
+      charts[canvasId] = new Chart(ctx, {
+        type,
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: colors, borderRadius: type === 'bar' ? 8 : 0, borderWidth: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: type !== 'bar', labels: { color: '#cbd5e1', font: { size: 12 } } } },
+          scales: type === 'bar' ? {
+            y: { beginAtZero: true, ticks: { stepSize: 1, color: '#94a3b8' }, grid: { color: '#1e293b' } },
+            x: { ticks: { color: '#f8fafc', font: { size: 13, weight: 'bold' } }, grid: { display: false } }
+          } : {}
+        }
+      });
+    }
+
+    // 渲染大屏1
+    function renderTeacherDash1() {
+      const list = allSubmissions.filter(x => x.exp_type === 'exp1');
+      document.getElementById('tCountBadge').textContent = list.length;
+
+      const cLabels = ['学院型', '俱乐部型', '棒球队型', '堡垒型'];
+      const cCounts = cLabels.map(l => list.filter(x => x.payload.culture === l).length);
+      renderChart('chartExp1Culture', 'bar', cLabels, cCounts, ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e']);
+
+      const rLabels = ['直线业务岗', '参谋职能岗'];
+      const rCounts = rLabels.map(l => list.filter(x => x.payload.role === l).length);
+      renderChart('chartExp1Role', 'doughnut', rLabels, rCounts, ['#f97316', '#6366f1']);
+
+      const total = list.length || 1;
+      document.getElementById('exp1RoleStats').innerHTML = `
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-orange-400 font-bold">直线业务岗：${rCounts[0]} 人 (${Math.round(rCounts[0]/total*100)}%)</div>
+          <div class="text-xs text-slate-400 mt-0.5">愿背业绩指标、追求高弹性晋升</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="text-indigo-400 font-bold">参谋职能岗：${rCounts[1]} 人 (${Math.round(rCounts[1]/total*100)}%)</div>
+          <div class="text-xs text-slate-400 mt-0.5">偏爱专业深耕、不直接背负业务指标</div>
+        </div>
+      `;
+
+      const wall = document.getElementById('exp1Wall');
+      wall.innerHTML = list.length === 0
+        ? '<div class="text-slate-500 text-sm text-center py-10">等待学生扫码提交...</div>'
+        : list.map(x => `
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+            <div class="flex items-center gap-2 text-xs font-bold">
+              <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">${escapeHtml(x.payload.culture)}</span>
+              <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300">${escapeHtml(x.payload.role)}</span>
+            </div>
+            <p class="text-sm text-slate-200 leading-relaxed">“${escapeHtml(x.payload.reason)}”</p>
+          </div>
+        `).join('');
+    }
+
+    // 渲染大屏2
+    function renderTeacherDash2() {
+      const list = allSubmissions.filter(x => x.exp_type === 'exp2');
+      document.getElementById('tCountBadge').textContent = list.length;
+
+      const oLabels = ['候选人 A (985学霸)', '候选人 B (实战对口)', '候选人 C (拒加班大牛)'];
+      const oCounts = ['A', 'B', 'C'].map(k => list.filter(x => x.payload.offer === k).length);
+      renderChart('chartExp2Offer', 'bar', oLabels, oCounts, ['#38bdf8', '#10b981', '#f43f5e']);
+
+      const lLabels = ['多重淘汰式', '补偿式', '结合式'];
+      const lCounts = lLabels.map(l => list.filter(x => x.payload.logic === l).length);
+      renderChart('chartExp2Logic', 'doughnut', lLabels, lCounts, ['#ef4444', '#f59e0b', '#8b5cf6']);
+
+      ['A', 'B', 'C'].forEach(target => {
+        const sub = list.filter(x => x.payload.reject === target);
+        document.getElementById('exp2Wall' + target).innerHTML = sub.length === 0
+          ? '<div class="text-slate-500 text-center py-6">暂无淘汰理由</div>'
+          : sub.map(x => `
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 leading-relaxed">
+              <span class="text-[11px] text-amber-400 font-bold mr-1">[${escapeHtml(x.payload.logic)} · 选了${escapeHtml(x.payload.offer)}]</span>
+              “${escapeHtml(x.payload.reason)}”
+            </div>
+          `).join('');
+      });
+    }
+
+    // 渲染大屏3（含自动高频词云）
+    const WATCH_KEYWORDS = ['加班','薪资','工资','晋升','发展','培训','氛围','文化','奖惩','考核','绩效','转正','裁员','团队','领导','老板','工作内容','作息','弹性','福利','期望','挑战','留存','离职'];
+
+    function renderTeacherDash3() {
+      const list = allSubmissions.filter(x => x.exp_type === 'exp3');
+      document.getElementById('tCountBadge').textContent = list.length;
+
+      const freq = {};
+      WATCH_KEYWORDS.forEach(kw => {
+        const c = list.filter(x => (x.payload.question || '').includes(kw)).length;
+        if (c > 0) freq[kw] = c;
+      });
+      const sortedKw = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+
+      const wc = document.getElementById('exp3WordCloud');
+      wc.innerHTML = sortedKw.length === 0
+        ? '<span class="text-slate-500 text-xs">学生提交问题后，将自动提取“加班/晋升/奖惩/考核”等高频热词...</span>'
+        : sortedKw.map(([kw, cnt]) => {
+            const sizeClass = cnt >= 5 ? 'text-xl px-4 py-2' : cnt >= 2 ? 'text-base px-3 py-1.5' : 'text-xs px-2.5 py-1';
+            const isActive = activeKeyword === kw;
+            return `<button onclick="activeKeyword=(activeKeyword==='${kw}'?'':'${kw}'); renderTeacherDash3();" class="${sizeClass} rounded-full font-extrabold cursor-pointer transition-all ${isActive ? 'bg-amber-500 text-slate-950 scale-105' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700'}">${kw} <span class="opacity-70 text-xs">×${cnt}</span></button>`;
+          }).join('');
+
+      const filtered = activeKeyword ? list.filter(x => (x.payload.question || '').includes(activeKeyword)) : list;
+      document.getElementById('exp3Wall').innerHTML = filtered.length === 0
+        ? '<div class="col-span-full text-slate-500 text-sm text-center py-10">等待学生发送反问...</div>'
+        : filtered.map((x, idx) => `
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-slate-200 leading-relaxed">
+            <span class="text-amber-400 font-bold mr-1">#${filtered.length - idx}</span>
+            “${escapeHtml(x.payload.question)}”
+          </div>
+        `).join('');
+    }
+
+    // 二维码弹窗
+    function openQrModal() {
+      const baseUrl = window.location.href.split('?')[0];
+      document.getElementById('qrUrlText').textContent = baseUrl;
+      document.getElementById('qrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(baseUrl)}`;
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    // 启动初始化
+    window.onload = () => {
+      initSupabase();
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('role') === 'teacher') {
+        toggleRoleMode(true);
+      }
+    };
+  </script>
+</body>
+</html>
